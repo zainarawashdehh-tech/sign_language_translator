@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Language Translator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+    <div class="container">
+        <h1>🤟 Sign Language Translator</h1>
+        <p>Enter text to translate it into sign language hand gestures.</p>
+
+        <div class="input-section">
+            <textarea id="userText" placeholder="Write your message here... (e.g. HELLO)"></textarea>
+            <button id="translateBtn" onclick="translateText()">Translate</button>
+        </div>
+
+        <div id="loading" class="hidden">Processing text with AI... ⏳</div>
+
+        <div id="resultSection" class="result-section hidden">
+            <h3>Original Text:</h3>
+            <p id="originalText"></p>
+
+            <h3>AI Summary:</h3>
+            <p id="simplifiedText" class="highlight"></p>
+
+            <h3>Sign Language Translation:</h3>
+            <div id="signGallery" class="sign-gallery"></div>
+        </div>
+    </div>
+
+    <script>
+        async function translateText() {
+            const textInput = document.getElementById('userText').value;
+            const loading = document.getElementById('loading');
+            const resultSection = document.getElementById('resultSection');
+            const signGallery = document.getElementById('signGallery');
+
+            if (!textInput.trim()) {
+                alert("Please enter text first!");
+                return;
+            }
+
+            loading.classList.remove('hidden');
+            resultSection.classList.add('hidden');
+            signGallery.innerHTML = '';
+
+            try {
+                const response = await fetch('/translate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: textInput })
+                });
+
+                const data = await response.json();
+                loading.classList.add('hidden');
+
+                if (response.ok) {
+                    document.getElementById('originalText').innerText = data.original;
+                    document.getElementById('simplifiedText').innerText = data.simplified;
+
+                    if (data.images.length === 0) {
+                        signGallery.innerHTML = '<p>No matching images found.</p>';
+                    } else {
+                        data.images.forEach(imgSrc => {
+                            const img = document.createElement('img');
+                            img.src = imgSrc;
+                            img.className = "sign-img";
+                            signGallery.appendChild(img);
+                        });
+                    }
+
+                    resultSection.classList.remove('hidden');
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                loading.classList.add('hidden');
+                alert('Server connection failed!');
+            }
+        }
+    </script>
+</body>
+</html>
