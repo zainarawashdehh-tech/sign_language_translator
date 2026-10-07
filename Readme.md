@@ -1,3 +1,4 @@
+Final Project
 # Sign Language Translator (AI-Powered)
 
 "Connecting people through technology — making sign language simple and accessible for everyone."
